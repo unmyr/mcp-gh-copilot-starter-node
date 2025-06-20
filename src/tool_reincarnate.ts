@@ -9,7 +9,7 @@ const server = new McpServer({
   version: "1.0.0",
 });
 
-function reincarnate(name: string): string {
+export function reincarnate(name: string): string {
   const messages = [
     `${name}, you have been reincarnated as a wise old owl.`,
     `${name}, you have been reincarnated as a brave lion.`,
