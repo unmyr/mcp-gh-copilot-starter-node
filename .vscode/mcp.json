@@ -1,0 +1,11 @@
+{
+  "inputs": [],
+  "servers": {
+    "mcp-stdio-reincarnate": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["ts-node", "${workspaceFolder}/src/tool_reincarnate.ts"],
+      "env": {}
+    }
+  }
+}

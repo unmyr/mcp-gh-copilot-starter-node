@@ -1,0 +1,26 @@
+{
+  "name": "mcp-nodejs-sample",
+  "version": "1.0.0",
+  "description": "This is an example of an MCP server. It takes a name as input and returns a random message about what reincarnation.",
+  "main": "src/tool_reincarnate.ts",
+  "scripts": {
+    "start": "ts-node src/tool_reincarnate.ts",
+    "build": "tsc",
+    "test": "./test_stdio_tool_reincarnate.sh",
+    "clean": "rm -rf ./dist"
+  },
+  "keywords": [
+    "mcp",
+    "nodejs",
+    "sample"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
