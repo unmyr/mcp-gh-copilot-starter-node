@@ -5,7 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 // Create an MCP server
 const server = new McpServer({
-  name: "Demo",
+  name: "Reincarnate a person with a random message",
   version: "1.0.0",
 });
 
