@@ -79,7 +79,7 @@ describe("stdio", () => {
                             result: {
                                 protocolVersion: "2024-11-05",
                                 capabilities: { tools: { listChanged: true } },
-                                serverInfo: { name: "Reincarnate a person with a random message", version: "1.0.0" }
+                                serverInfo: { name: "demo-reincarnate-tool", version: "1.0.0" }
                             },
                             jsonrpc: "2.0",
                             id: 0
