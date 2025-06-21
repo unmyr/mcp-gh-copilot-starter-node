@@ -5,7 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 // Create an MCP server
 const server = new McpServer({
-  name: "Reincarnate a person with a random message",
+  name: "demo-reincarnate-tool",
   version: "1.0.0",
 });
 
@@ -23,11 +23,14 @@ export function reincarnate(name: string): string {
 // Reincarnate a person into a new form using a tool
 // The tool takes a name as input and returns a message about the reincarnation
 // The tool can be used in a prompt or called directly
-server.tool(
+
+// Register the tool with the server
+server.registerTool(
   "reincarnate",
-  "Reincarnate a person into a new form",
   {
-    name: z.string().describe("The name of the person to reincarnate"),
+    title: "Reincarnate a person",
+    description: "Reincarnate a person into a new form",
+    inputSchema: { name: z.string().describe("The name of the person to reincarnate") }
   },
   async ({ name }) => ({
     content: [{ type: "text", text: reincarnate(name) }]
