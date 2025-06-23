@@ -33,12 +33,10 @@ function parseLines(buffer, onLine) {
 
 describe("stdio", () => {
     let child;
-    let step;
     let finished;
 
     beforeAll(() => {
         const { spawn } = require("child_process");
-        step = 0;
         finished = false;
         child = spawn('npx', ['ts-node', './src/tool_reincarnate.ts'], { stdio: ['pipe', 'pipe', 'inherit'] });
         child.on('error', (err) => {
@@ -75,7 +73,7 @@ describe("stdio", () => {
                 buffer += data.toString();
                 buffer = parseLines(buffer, (line) => {
                     const json = JSON.parse(line);
-                    if (step === 0) {
+                    if (json.id === 0) {
                         expect(json).toMatchObject({
                             result: {
                                 protocolVersion: "2024-11-05",
@@ -87,8 +85,7 @@ describe("stdio", () => {
                         });
                         sendMessage(child, { jsonrpc: "2.0", method: "notifications/initialized", params: {} });
                         sendMessage(child, { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} });
-                        step++;
-                    } else if (step === 1) {
+                    } else if (json.id === 1) {
                         expect(json).toMatchObject({
                             result: {
                                 tools: [
@@ -117,14 +114,12 @@ describe("stdio", () => {
                                 arguments: { name: "Ann" }
                             }
                         });
-                        step++;
-                    } else if (step === 2) {
+                    } else if (json.id === 2) {
                         expect(json.result.content[0].text).toContain("Ann");
                         expect(json.jsonrpc).toBe("2.0");
                         expect(json.id).toBe(2);
                         sendMessage(child, { jsonrpc: "2.0", id: 3, method: "server/shutdown", params: [] });
                         child.stdin.end();
-                        step++;
                     }
                 });
             });
