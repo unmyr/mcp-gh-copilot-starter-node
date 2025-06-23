@@ -1,8 +1,9 @@
 #!/usr/bin/expect -f
 set timeout 10
+set msg_id 0
 
 spawn npx ts-node src/tool_reincarnate.ts
-send -- "{\"jsonrpc\": \"2.0\", \"id\": 0, \"method\": \"initialize\", \"params\": {\"protocolVersion\": \"2024-11-05\", \"capabilities\": {}, \"clientInfo\": {\"name\": \"whatever\", \"version\": \"0.0.0\"}}}\r"
+send -- "{\"jsonrpc\": \"2.0\", \"id\": $msg_id, \"method\": \"initialize\", \"params\": {\"protocolVersion\": \"2024-11-05\", \"capabilities\": {}, \"clientInfo\": {\"name\": \"whatever\", \"version\": \"0.0.0\"}}}\r"
 expect  {
     -r "\r\n" {puts "Received response to initialize"}
     timeout {
@@ -15,7 +16,8 @@ expect "result"
 send --  "{\"jsonrpc\":\"2.0\",\"method\":\"notifications/initialized\",\"params\":{}}\r"
 
 puts ""
-send -- "{\"jsonrpc\": \"2.0\", \"id\": 0, \"method\": \"tools/list\", \"params\":{}}\r"
+incr msg_id
+send -- "{\"jsonrpc\": \"2.0\", \"id\": $msg_id, \"method\": \"tools/list\", \"params\":{}}\r"
 expect  {
     -r "\r\n" {puts "Received response to tools/list"}
     timeout {
@@ -32,7 +34,8 @@ expect  {
 }
 
 puts ""
-send -- "{\"jsonrpc\": \"2.0\", \"id\": 0, \"method\": \"tools/call\", \"params\":{\"name\": \"reincarnate\", \"arguments\": {\"name\": \"Ann\"}}}\r"
+incr msg_id
+send -- "{\"jsonrpc\": \"2.0\", \"id\": $msg_id, \"method\": \"tools/call\", \"params\":{\"name\": \"reincarnate\", \"arguments\": {\"name\": \"Ann\"}}}\r"
 expect {
   -r "\r\n" {
     puts "Received response to tools/call"
@@ -45,7 +48,8 @@ timeout {
 expect "result"
 
 puts ""
-send -- "{\"jsonrpc\": \"2.0\", \"id\": 0, \"method\": \"resources/list\", \"params\":{}}\r"
+incr msg_id
+send -- "{\"jsonrpc\": \"2.0\", \"id\": $msg_id, \"method\": \"resources/list\", \"params\":{}}\r"
 expect {
     -r "\r\n" {
         puts "Received response to resources/list"
@@ -67,7 +71,8 @@ expect {
 }
 
 puts ""
-send -- "{\"jsonrpc\": \"2.0\", \"id\": 0, \"method\": \"prompts/list\"}\r"
+incr msg_id
+send -- "{\"jsonrpc\": \"2.0\", \"id\": $msg_id, \"method\": \"prompts/list\"}\r"
 expect {
     -r "\r\n" {
         puts "Received response to prompts/list"
@@ -87,6 +92,7 @@ expect {
 }
 
 puts ""
-send --  "{\"jsonrpc\":\"2.0\", \"id\": 0, \"method\":\"server.shutdown\",\"params\":[]}\r"
+incr msg_id
+send --  "{\"jsonrpc\":\"2.0\", \"id\": $msg_id, \"method\":\"server.shutdown\",\"params\":[]}\r"
 
 exit
