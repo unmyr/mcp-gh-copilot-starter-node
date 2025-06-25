@@ -33,7 +33,8 @@ function parseLines(buffer, onLine) {
 
 describe("stdio", () => {
     let child;
-    let finished;
+    let finished: boolean;
+    let callbacks: object = {};
 
     beforeAll(() => {
         const { spawn } = require("child_process");
@@ -62,6 +63,18 @@ describe("stdio", () => {
                 clientInfo: { name: "whatever", version: "0.0.0" }
             }
         });
+        callbacks[0] = (json) => {
+            expect(json).toMatchObject({
+                result: {
+                    protocolVersion: "2024-11-05",
+                    capabilities: { tools: { listChanged: true } },
+                    serverInfo: { name: "demo-reincarnate-tool", version: "1.0.0" }
+                },
+                jsonrpc: "2.0",
+                id: 0
+            });
+            sendMessage(child, { jsonrpc: "2.0", method: "notifications/initialized", params: {} });
+        };
     });
 
     it(
@@ -73,52 +86,57 @@ describe("stdio", () => {
                 buffer += data.toString();
                 buffer = parseLines(buffer, (line) => {
                     const json = JSON.parse(line);
-                    if (json.id === 0) {
-                        expect(json).toMatchObject({
-                            result: {
-                                protocolVersion: "2024-11-05",
-                                capabilities: { tools: { listChanged: true } },
-                                serverInfo: { name: "demo-reincarnate-tool", version: "1.0.0" }
-                            },
-                            jsonrpc: "2.0",
-                            id: 0
-                        });
-                        sendMessage(child, { jsonrpc: "2.0", method: "notifications/initialized", params: {} });
-                        sendMessage(child, { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} });
-                    } else if (json.id === 1) {
-                        expect(json).toMatchObject({
-                            result: {
-                                tools: [
-                                    {
-                                        name: "reincarnate",
-                                        description: "Reincarnate a person into a new form",
-                                        inputSchema: {
-                                            type: "object",
-                                            properties: {
-                                                name: { type: "string", description: "The name of the person to reincarnate" }
-                                            },
-                                            required: ["name"]
+                    const msg_id = json.id;
+                    const next_msg_id = msg_id + 1;
+
+                    if (msg_id === 0) {
+                        callbacks[msg_id](json);
+                        delete callbacks[msg_id];
+
+                        sendMessage(child, { jsonrpc: "2.0", id: next_msg_id, method: "tools/list", params: {} });
+                        callbacks[next_msg_id] = (json) => {
+                            expect(json).toMatchObject({
+                                result: {
+                                    tools: [
+                                        {
+                                            name: "reincarnate",
+                                            description: "Reincarnate a person into a new form",
+                                            inputSchema: {
+                                                type: "object",
+                                                properties: {
+                                                    name: { type: "string", description: "The name of the person to reincarnate" }
+                                                },
+                                                required: ["name"]
+                                            }
                                         }
-                                    }
-                                ]
-                            },
-                            jsonrpc: "2.0",
-                            id: 1
-                        });
+                                    ]
+                                },
+                                jsonrpc: "2.0",
+                                id: next_msg_id
+                            });
+                        };
+                    } else if (msg_id === 1) {
+                        callbacks[msg_id](json);
+                        delete callbacks[msg_id];
+
                         sendMessage(child, {
                             jsonrpc: "2.0",
-                            id: 2,
+                            id: next_msg_id,
                             method: "tools/call",
                             params: {
                                 name: "reincarnate",
                                 arguments: { name: "Ann" }
                             }
                         });
-                    } else if (json.id === 2) {
-                        expect(json.result.content[0].text).toContain("Ann");
-                        expect(json.jsonrpc).toBe("2.0");
-                        expect(json.id).toBe(2);
-                        sendMessage(child, { jsonrpc: "2.0", id: 3, method: "server/shutdown", params: [] });
+                        callbacks[next_msg_id] = (json) => {
+                            expect(json.result.content[0].text).toContain("Ann");
+                            expect(json.jsonrpc).toBe("2.0");
+                        }
+                    } else if (msg_id === 2) {
+                        callbacks[msg_id](json);
+                        delete callbacks[msg_id];
+
+                        sendMessage(child, { jsonrpc: "2.0", id: (msg_id + 1), method: "server/shutdown", params: [] });
                         child.stdin.end();
                     }
                 });
